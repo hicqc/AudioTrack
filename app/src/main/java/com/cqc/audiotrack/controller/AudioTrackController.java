@@ -51,14 +51,12 @@ public class AudioTrackController {
                 .setAudioAttributes(new AudioAttributes.Builder()   //用于封装描述有关音频流的信息的属性集合的类.
                         .setUsage(AudioAttributes.USAGE_MEDIA)  //set声音用途
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC) //set播放内容的类型
-                        .setLegacyStreamType(AudioManager.STREAM_MUSIC)
                         .build())
                 .setAudioFormat(new AudioFormat.Builder()   //用于访问多个音频格式和信道配置常量。
                         .setEncoding(AudioFormat.ENCODING_PCM_16BIT)    //采样位深
                         .setSampleRate(48000)   //采样率
                         .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)     //信道掩码
                         .build())
-//                .setTransferMode(AudioTrack.MODE_STREAM)    //官方么得
                 .setBufferSizeInBytes(minBufferSize)
                 .build();
         Log.i(TAG,"audiotrack is create");
@@ -105,7 +103,6 @@ public class AudioTrackController {
     }
 
     public void realease(){
-        audioTrack.stop();
-        audioTrack.release();
+        audioTrack.release();   //release 调用了stop
     }
 }
