@@ -15,6 +15,8 @@ import com.cqc.audiotrack.R;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 
 @RequiresApi(api = Build.VERSION_CODES.M)
@@ -25,6 +27,7 @@ public class AudioTrackController {
     AudioTrack audioTrack;
     Context context;
     BufferedInputStream bufferedInputStream;
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
     int minBufferSize;
 
     public AudioTrackController(Context context) {
@@ -63,35 +66,46 @@ public class AudioTrackController {
 
 
     public void play() {
+        Log.i(TAG,"in play() and pre loadfile() ");
         loadFile(); //把文件读入bis里面
-        new Runnable() {
-            @Override
-            public void run() {
-                //TODO
-                byte[] bytes = new byte[minBufferSize];
-                int length;
-                int channel =2;
-                audioTrack.play();
-                while (true){
-                    try {
-                        while ((length = bufferedInputStream.read(bytes)) != -1){
-                            int framesize = length/(2*channel);
-                            audioTrack.write(new short[length/2],0,framesize*channel);
+        executorService.execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            writeData();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }finally {
+                            audioTrack.stop();
+                            audioTrack.release();
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }finally {
-                        audioTrack.stop();
                     }
-
                 }
+        );
+    }
 
-            }
-        };
+
+    private void writeData() throws IOException {
+        byte[] bytes = new byte[minBufferSize];
+        int length;
+        audioTrack.play();
+        while ((audioTrack!= null && audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING &&(length = bufferedInputStream.read(bytes)) != -1)){
+            audioTrack.write(bytes,0,length);//offsetInBytes表示bytes要写入数据开始的偏移量
+        }
     }
 
     private void loadFile() {
         InputStream inputStream = context.getResources().openRawResource(R.raw.music);
         bufferedInputStream = new BufferedInputStream(inputStream);
+    }
+
+    public void stop(){
+        audioTrack.stop();
+    }
+
+    public void realease(){
+        audioTrack.stop();
+        audioTrack.release();
     }
 }

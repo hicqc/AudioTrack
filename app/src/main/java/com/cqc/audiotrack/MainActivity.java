@@ -16,8 +16,9 @@ import com.cqc.audiotrack.controller.AudioTrackController;
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "AudioTrackController";
     Button button_play;
+    Button button_release;
     AudioTrackController audioTrackController;
 
     @Override
@@ -25,7 +26,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         button_play = findViewById(R.id.button_play);
+        button_release = findViewById(R.id.button_release);
+
         button_play.setOnClickListener(this);
+        button_release.setOnClickListener(this);
+
         initAudioTrackPlayer(this); // AudioTrack is create
     }
 
@@ -41,6 +46,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.button_play:
                 Log.i(TAG,"PRE PLAY");
                 audioTrackController.play();
+                break;
+            case R.id.button_release:
+                Log.i(TAG,"pre release");
+                audioTrackController.realease();
                 break;
             default:
                 break;
