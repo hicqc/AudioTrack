@@ -3,7 +3,6 @@ package com.cqc.audiotrack.controller;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.util.Log;
@@ -19,7 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 
 
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class AudioTrackController {
 
     private String TAG = "AudioTrackController";
@@ -30,11 +28,14 @@ public class AudioTrackController {
     ExecutorService executorService = Executors.newSingleThreadExecutor();
     int minBufferSize;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public AudioTrackController(Context context) {
         initAudioTrack();
         this.context = context;
     }
 
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public void initAudioTrack() {
         minBufferSize = AudioTrack.getMinBufferSize(48000, AudioFormat.CHANNEL_IN_STEREO,
                 AudioFormat.ENCODING_PCM_16BIT);
@@ -58,6 +59,7 @@ public class AudioTrackController {
                         .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)     //信道掩码
                         .build())
                 .setBufferSizeInBytes(minBufferSize)
+//                .setOffloadedPlayback(true)
                 .build();
         Log.i(TAG,"audiotrack is create");
     }
@@ -76,7 +78,6 @@ public class AudioTrackController {
                             e.printStackTrace();
                         }finally {
                             audioTrack.stop();
-                            audioTrack.release();
                         }
                     }
                 }
@@ -103,6 +104,9 @@ public class AudioTrackController {
     }
 
     public void realease(){
-        audioTrack.release();   //release 调用了stop
+        if (audioTrack != null){
+            audioTrack.release();
+        }
+
     }
 }
