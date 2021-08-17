@@ -3,6 +3,7 @@ package com.cqc.audiotrack.controller;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.util.Log;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.jar.Attributes;
 
 
 public class AudioTrackController {
@@ -28,36 +30,35 @@ public class AudioTrackController {
     ExecutorService executorService = Executors.newSingleThreadExecutor();
     int minBufferSize;
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public AudioTrackController(Context context) {
         initAudioTrack();
         this.context = context;
     }
 
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void initAudioTrack() {
-        minBufferSize = AudioTrack.getMinBufferSize(48000, AudioFormat.CHANNEL_IN_STEREO,
-                AudioFormat.ENCODING_PCM_16BIT);
-        /**
-         * 该构造器已经被弃用
-         * AudioTrack(int streamType, int sampleRateInHz, int channelConfig,int audioFormat, int bufferSizeInBytes, int mode)
-         * AudioTrack(int streamType, int sampleRateInHz, int channelConfig, int audioFormat, int bufferSizeInBytes, int mode, int sessionId)
-         *
-         * 唯一的构造器：
-         * AudioTrack(AudioAttributes attributes, AudioFormat format, int bufferSizeInBytes, int mode, int sessionId)
-         *
-         */
-        audioTrack = new AudioTrack.Builder()
-                .setAudioAttributes(new AudioAttributes.Builder()   //用于封装描述有关音频流的信息的属性集合的类.
+        AudioFormat audioFormat = new AudioFormat.Builder()   //用于访问多个音频格式和信道配置常量。
+                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .setSampleRate(48000)   //采样率
+                .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)     //信道掩码
+                .build();
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()   //用于封装描述有关音频流的信息的属性集合的类.
                         .setUsage(AudioAttributes.USAGE_MEDIA)  //set声音用途
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC) //set播放内容的类型
-                        .build())
-                .setAudioFormat(new AudioFormat.Builder()   //用于访问多个音频格式和信道配置常量。
-                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)    //采样位深
-                        .setSampleRate(48000)   //采样率
-                        .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)     //信道掩码
-                        .build())
+                .build();
+
+        boolean offloadedPlaybackSupported = AudioManager.isOffloadedPlaybackSupported(audioFormat,audioAttributes);
+        Log.i(TAG,"offloadedPlaybackSupported is "+offloadedPlaybackSupported);
+        minBufferSize = AudioTrack.getMinBufferSize(48000, AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_16BIT);
+
+        audioTrack = new AudioTrack.Builder()
+                .setAudioAttributes(audioAttributes)
+                .setAudioFormat(audioFormat)
                 .setBufferSizeInBytes(minBufferSize)
 //                .setOffloadedPlayback(true)
                 .build();
@@ -97,7 +98,9 @@ public class AudioTrackController {
     private void loadFile() {
         InputStream inputStream = context.getResources().openRawResource(R.raw.music);
         bufferedInputStream = new BufferedInputStream(inputStream);
+
     }
+
 
     public void stop(){
         audioTrack.stop();
