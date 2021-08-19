@@ -42,7 +42,7 @@ public class AudioTrackController {
     @RequiresApi(api = Build.VERSION_CODES.Q)
     public void initAudioTrack() {
         AudioFormat audioFormat = new AudioFormat.Builder()   //用于访问多个音频格式和信道配置常量。
-                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .setEncoding(AudioFormat.ENCODING_MP3)
                 .setSampleRate(48000)   //采样率
                 .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)     //信道掩码
                 .build();
@@ -51,16 +51,16 @@ public class AudioTrackController {
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC) //set播放内容的类型
                 .build();
 
-        boolean offloadedPlaybackSupported = AudioManager.isOffloadedPlaybackSupported(audioFormat,audioAttributes);
-        Log.i(TAG,"offloadedPlaybackSupported is "+offloadedPlaybackSupported);
+//        boolean offloadedPlaybackSupported = AudioManager.isOffloadedPlaybackSupported(audioFormat,audioAttributes);
+//        Log.i(TAG,"offloadedPlaybackSupported is "+offloadedPlaybackSupported);
         minBufferSize = AudioTrack.getMinBufferSize(48000, AudioFormat.CHANNEL_OUT_STEREO,
-                AudioFormat.ENCODING_PCM_16BIT);
+                AudioFormat.ENCODING_MP3);
 
         audioTrack = new AudioTrack.Builder()
                 .setAudioAttributes(audioAttributes)
                 .setAudioFormat(audioFormat)
                 .setBufferSizeInBytes(minBufferSize)
-//                .setOffloadedPlayback(true)
+                .setOffloadedPlayback(true)
                 .build();
         Log.i(TAG,"audiotrack is create");
     }
@@ -96,7 +96,7 @@ public class AudioTrackController {
     }
 
     private void loadFile() {
-        InputStream inputStream = context.getResources().openRawResource(R.raw.music);
+        InputStream inputStream = context.getResources().openRawResource(R.raw.mp31);
         bufferedInputStream = new BufferedInputStream(inputStream);
 
     }
