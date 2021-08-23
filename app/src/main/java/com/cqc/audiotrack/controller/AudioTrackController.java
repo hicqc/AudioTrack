@@ -43,25 +43,27 @@ public class AudioTrackController {
     public void initAudioTrack() {
         AudioFormat audioFormat = new AudioFormat.Builder()   //用于访问多个音频格式和信道配置常量。
                 .setEncoding(AudioFormat.ENCODING_MP3)
-                .setSampleRate(48000)   //采样率
+                .setSampleRate(44100)   //采样率
                 .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)     //信道掩码
                 .build();
         AudioAttributes audioAttributes = new AudioAttributes.Builder()   //用于封装描述有关音频流的信息的属性集合的类.
                         .setUsage(AudioAttributes.USAGE_MEDIA)  //set声音用途
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC) //set播放内容的类型
                 .build();
-
+//
 //        boolean offloadedPlaybackSupported = AudioManager.isOffloadedPlaybackSupported(audioFormat,audioAttributes);
 //        Log.i(TAG,"offloadedPlaybackSupported is "+offloadedPlaybackSupported);
-        minBufferSize = AudioTrack.getMinBufferSize(48000, AudioFormat.CHANNEL_OUT_STEREO,
-                AudioFormat.ENCODING_MP3);
+        minBufferSize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_16BIT);
 
         audioTrack = new AudioTrack.Builder()
                 .setAudioAttributes(audioAttributes)
                 .setAudioFormat(audioFormat)
-                .setBufferSizeInBytes(minBufferSize)
+                .setBufferSizeInBytes(minBufferSize*3)
+//                .setTransferMode(AudioTrack.MODE_STREAM)
                 .setOffloadedPlayback(true)
                 .build();
+
         Log.i(TAG,"audiotrack is create");
     }
 
@@ -87,18 +89,19 @@ public class AudioTrackController {
 
 
     private void writeData() throws IOException {
-        byte[] bytes = new byte[minBufferSize];
-        int length;
+        byte[] buffer = new byte[minBufferSize];
         audioTrack.play();
-        while ((audioTrack!= null && audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING &&(length = bufferedInputStream.read(bytes)) != -1)){
-            audioTrack.write(bytes,0,length);//offsetInBytes表示bytes要写入数据开始的偏移量
+        while ((audioTrack!= null && audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING)){
+//                &&(read = bufferedInputStream.read(buffer,0,buffer.length)) != -1)){
+
+            int write = audioTrack.write(buffer, 0, buffer.length);//offsetInBytes表示bytes要写入数据开始的偏移量
+            bufferedInputStream.read(buffer,0,write);
         }
     }
 
     private void loadFile() {
         InputStream inputStream = context.getResources().openRawResource(R.raw.mp31);
         bufferedInputStream = new BufferedInputStream(inputStream);
-
     }
 
 
