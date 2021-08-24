@@ -89,11 +89,9 @@ public class AudioTrackController {
 
 
     private void writeData() throws IOException {
-        byte[] buffer = new byte[minBufferSize];
+        byte[] buffer = new byte[minBufferSize*10];
         audioTrack.play();
         while ((audioTrack!= null && audioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING)){
-//                &&(read = bufferedInputStream.read(buffer,0,buffer.length)) != -1)){
-
             int write = audioTrack.write(buffer, 0, buffer.length);//offsetInBytes表示bytes要写入数据开始的偏移量
             bufferedInputStream.read(buffer,0,write);
         }
